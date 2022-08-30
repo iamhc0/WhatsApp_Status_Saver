@@ -78,29 +78,28 @@ public class Common {
                 Uri destinationUri;
 
                 values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
-
-
                 if (status.isVideo()) {
                     values.put(MediaStore.MediaColumns.MIME_TYPE, "video/*");
-                    values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_MOVIES + "/StatusDownloader");
-                    destinationUri = context.getContentResolver().insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values);
+
                 } else {
                     values.put(MediaStore.MediaColumns.MIME_TYPE, "image/*");
-                    values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/StatusDownloader");
-                    destinationUri = context.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
                 }
-                
+
+                values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DCIM + "/Status Downloader");
+                Uri collectionUri = MediaStore.Images.Media.getContentUri(
+                        MediaStore.VOLUME_EXTERNAL_PRIMARY
+                );
+                destinationUri = context.getContentResolver().insert(collectionUri, values);
+
                 InputStream inputStream = context.getContentResolver().openInputStream(status.getDocumentFile().getUri());
                 OutputStream outputStream = context.getContentResolver().openOutputStream(destinationUri);
                 IOUtils.copy(inputStream, outputStream);
             } else {
                 org.apache.commons.io.FileUtils.copyFile(status.getFile(), destFile);
+                destFile.setLastModified(System.currentTimeMillis());
+                new SingleMediaScanner(context, file);
             }
 
-            destFile.setLastModified(System.currentTimeMillis());
-            new SingleMediaScanner(context, file);
-
-//            showNotification(context, container, destFile, status);
 
         } catch (IOException e) {
             e.printStackTrace();

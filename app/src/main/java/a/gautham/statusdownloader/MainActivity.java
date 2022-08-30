@@ -10,6 +10,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.storage.StorageManager;
@@ -53,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Context context;
 
-    ActivityResultLauncher<Intent> activityResultLauncher = registerForActivityResult(
+    ActivityResultLauncher< Intent > activityResultLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() == Activity.RESULT_OK) {
@@ -91,10 +92,8 @@ public class MainActivity extends AppCompatActivity {
 
         tabLayout.addTab(tabLayout.newTab().setText(getString(R.string.images)));
         tabLayout.addTab(tabLayout.newTab().setText(getString(R.string.videos)));
+        tabLayout.addTab(tabLayout.newTab().setText(getString(R.string.saved_files)));
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            tabLayout.addTab(tabLayout.newTab().setText(getString(R.string.saved_files)));
-        }
 
         PagerAdapter adapter = new PageAdapter(getSupportFragmentManager(), tabLayout.getTabCount());
         viewPager.setAdapter(adapter);
@@ -214,7 +213,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        Common.APP_DIR = getExternalFilesDir("StatusDownloader").getPath();
+        Common.APP_DIR = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).getPath() + "/Status Downloader";
         Log.d("App Path", Common.APP_DIR);
 
     }

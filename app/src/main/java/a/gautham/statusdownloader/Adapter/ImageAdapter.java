@@ -50,7 +50,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ItemViewHolder> {
 
         final Status status = imagesList.get(position);
         if (status.isApi30()) {
-            holder.save.setVisibility(View.GONE);
+            holder.save.setVisibility(View.VISIBLE);
             Glide.with(context).load(status.getDocumentFile().getUri()).into(holder.imageView);
         } else {
             holder.save.setVisibility(View.VISIBLE);

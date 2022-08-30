@@ -5,11 +5,14 @@ import static android.content.Context.NOTIFICATION_SERVICE;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.provider.MediaStore;
+import android.util.Log;
 import android.widget.RelativeLayout;
 
 import androidx.annotation.RequiresApi;
@@ -18,8 +21,12 @@ import androidx.core.content.FileProvider;
 
 import com.google.android.material.snackbar.Snackbar;
 
+import org.apache.commons.io.IOUtils;
+
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -67,13 +74,25 @@ public class Common {
         try {
 
             if (status.isApi30()) {
-                return;
-//                File fff = new File(status.getDocumentFile().getUri().getPath());
-//                System.out.println("LOL: " + fff.getPath());
-//                System.out.println("LOL 2: " + destFile.getPath());
-//                List<UriPermission> list = context.getContentResolver().getPersistedUriPermissions();
-//                copyFile(context, status.getDocumentFile().getUri().getPath(), Objects.requireNonNull(status.getDocumentFile().getName()),
-//                        list.get(0).getUri());
+                ContentValues values = new ContentValues();
+                Uri destinationUri;
+
+                values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
+
+
+                if (status.isVideo()) {
+                    values.put(MediaStore.MediaColumns.MIME_TYPE, "video/*");
+                    values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_MOVIES + "/StatusDownloader");
+                    destinationUri = context.getContentResolver().insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values);
+                } else {
+                    values.put(MediaStore.MediaColumns.MIME_TYPE, "image/*");
+                    values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/StatusDownloader");
+                    destinationUri = context.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+                }
+                
+                InputStream inputStream = context.getContentResolver().openInputStream(status.getDocumentFile().getUri());
+                OutputStream outputStream = context.getContentResolver().openOutputStream(destinationUri);
+                IOUtils.copy(inputStream, outputStream);
             } else {
                 org.apache.commons.io.FileUtils.copyFile(status.getFile(), destFile);
             }
@@ -85,9 +104,11 @@ public class Common {
 
         } catch (IOException e) {
             e.printStackTrace();
+            Log.d("copyFile", "Error: " + e.toString());
         }
 
     }
+
 
     private static void showNotification(Context context, RelativeLayout container, File destFile, Status status) {
 
